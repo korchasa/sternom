@@ -1,0 +1,59 @@
+# github.com/davecgh/go-spew v1.1.1
+## explicit
+# github.com/fatih/color v1.10.0
+## explicit
+github.com/fatih/color
+# github.com/go-logr/logr v0.4.0
+github.com/go-logr/logr
+# github.com/google/go-cmp v0.5.2
+github.com/google/go-cmp/cmp
+github.com/google/go-cmp/cmp/internal/diff
+github.com/google/go-cmp/cmp/internal/flags
+github.com/google/go-cmp/cmp/internal/function
+github.com/google/go-cmp/cmp/internal/value
+# github.com/gorilla/websocket v1.4.2
+github.com/gorilla/websocket
+# github.com/hashicorp/cronexpr v1.1.0
+github.com/hashicorp/cronexpr
+# github.com/hashicorp/go-cleanhttp v0.5.1
+github.com/hashicorp/go-cleanhttp
+# github.com/hashicorp/go-rootcerts v1.0.2
+github.com/hashicorp/go-rootcerts
+# github.com/hashicorp/nomad/api v0.0.0-20210409161549-050067a749c4
+## explicit
+github.com/hashicorp/nomad/api
+github.com/hashicorp/nomad/api/contexts
+# github.com/inconshreveable/mousetrap v1.0.0
+github.com/inconshreveable/mousetrap
+# github.com/mattn/go-colorable v0.1.8
+github.com/mattn/go-colorable
+# github.com/mattn/go-isatty v0.0.12
+github.com/mattn/go-isatty
+# github.com/mitchellh/go-homedir v1.1.0
+## explicit
+github.com/mitchellh/go-homedir
+# github.com/mitchellh/mapstructure v1.3.3
+github.com/mitchellh/mapstructure
+# github.com/pkg/errors v0.9.1
+## explicit
+github.com/pkg/errors
+# github.com/spf13/cobra v1.1.3
+## explicit
+github.com/spf13/cobra
+# github.com/spf13/pflag v1.0.5
+github.com/spf13/pflag
+# github.com/wercker/stern v0.0.0-20190705090245-4fa46dd6987f
+## explicit
+# golang.org/x/sys v0.0.0-20210225134936-a50acf3fe073
+golang.org/x/sys/internal/unsafeheader
+golang.org/x/sys/unix
+# k8s.io/apimachinery v0.21.0
+## explicit
+k8s.io/apimachinery/pkg/labels
+k8s.io/apimachinery/pkg/selection
+k8s.io/apimachinery/pkg/util/errors
+k8s.io/apimachinery/pkg/util/sets
+k8s.io/apimachinery/pkg/util/validation
+k8s.io/apimachinery/pkg/util/validation/field
+# k8s.io/klog/v2 v2.8.0
+k8s.io/klog/v2
