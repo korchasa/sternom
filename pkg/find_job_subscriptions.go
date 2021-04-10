@@ -17,6 +17,9 @@ func findJobSubscription(client *api.Client, prefix string) ([]*Subscription, er
 			return nil, fmt.Errorf("can't make a search for a Job `%s` allocations: %v", j.Name, err)
 		}
 		for _, al := range list {
+			if al.ClientStatus != api.AllocClientStatusRunning {
+				continue
+			}
 			for t := range al.TaskStates {
 				subs = append(subs, NewSubscription(al.NodeID, j.Name, al.ID, t))
 			}

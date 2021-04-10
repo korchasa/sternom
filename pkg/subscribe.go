@@ -5,32 +5,56 @@ import (
 	"github.com/fatih/color"
 	"github.com/hashicorp/nomad/api"
 	"hash/fnv"
+	"log"
 	"strings"
+	"sync"
 )
 
-func subscribe(client *api.Client, subs []*Subscription) {
+func subscribe(client *api.Client, conf *Config, subs []*Subscription, out chan<- string, wg *sync.WaitGroup) {
 	for _, sub := range subs {
-		fmt.Printf("Subscription %s\n", sub.String())
+		jobColor, allocColor, taskColor := determineColors(sub.Job, sub.Alloc, sub.Task)
+		name := fmt.Sprintf("%s:%s[%s]",
+			jobColor.Sprintf("%s", sub.Job),
+			allocColor.Sprintf("%s", sub.AllocShort),
+			taskColor.Sprintf("%s", sub.Task))
+		log.Printf("+ %s\n", name)
+
+		from := "end"
+		offset := conf.TailBytes
+		if conf.TailBytes == 0 {
+			offset = 1
+		} else if conf.TailBytes == -1 {
+			from = "start"
+			offset = 0
+		}
+
 		al := &api.Allocation{ID: sub.Alloc, NodeID: sub.Node}
-		dataCh, errorsCh := client.AllocFS().Logs(al, true, sub.Task, "stderr", "end", 0, nil, nil)
-		go func(sub *Subscription) {
-			jobColor, allocColor, taskColor := determineColors(sub.Job, sub.Alloc, sub.Task)
-			for {
-				select {
-				case data := <- dataCh:
-					for _, s := range strings.Split(string(data.Data), "\n") {
-						_, _ = jobColor.Printf("%s", sub.Job)
-						fmt.Printf(":")
-						_, _ = allocColor.Printf("%s", sub.AllocShort)
-						fmt.Printf("[")
-						_, _ = taskColor.Printf("%s", sub.Task)
-						fmt.Printf("] %s\n", s)
-					}
-				case err := <- errorsCh:
-					fmt.Printf("Error from %s: %v", sub.Alloc, err)
-				}
+
+		wg.Add(1)
+		go func(sub Subscription) {
+			stdoutCh, _ := client.AllocFS().Logs(al, conf.Follow, sub.Task, "stdout", from, offset, nil, nil)
+			worker(name+"  ", stdoutCh, out, wg)
+		}(*sub)
+
+		wg.Add(1)
+		go func(sub Subscription) {
+			stderrCh, _ := client.AllocFS().Logs(al, conf.Follow, sub.Task, "stderr", from, offset, nil, nil)
+			worker(name+"! ", stderrCh, out, wg)
+		}(*sub)
+	}
+}
+
+func worker(prefix string, in <-chan *api.StreamFrame, out chan<- string, wg *sync.WaitGroup) {
+	defer wg.Done()
+	for data := range in {
+		if data == nil {
+			continue
+		}
+		for _, s := range strings.Split(string(data.Data), "\n") {
+			if len(s) > 0 {
+				out <- prefix + s
 			}
-		}(sub)
+		}
 	}
 }
 
@@ -55,15 +79,15 @@ var otherColors = []*color.Color{
 func determineColors(job, alloc, task string) (jobColor, allocColor, taskColor *color.Color) {
 	hash := fnv.New32()
 	_, _ = hash.Write([]byte(job))
-	jobColor = jobColors[hash.Sum32() % uint32(len(jobColors))]
+	jobColor = jobColors[hash.Sum32()%uint32(len(jobColors))]
 
 	hash = fnv.New32()
 	_, _ = hash.Write([]byte(alloc))
-	allocColor = otherColors[hash.Sum32() % uint32(len(otherColors))]
+	allocColor = otherColors[hash.Sum32()%uint32(len(otherColors))]
 
 	hash = fnv.New32()
 	_, _ = hash.Write([]byte(task))
-	taskColor = otherColors[hash.Sum32() % uint32(len(otherColors))]
+	taskColor = otherColors[hash.Sum32()%uint32(len(otherColors))]
 
 	return
 }
