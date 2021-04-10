@@ -42,11 +42,8 @@ func RunApp(_ context.Context, conf *Config) error {
 
 	outputCh := make(chan string, 10)
 	go func() {
-		for {
-			select {
-			case str := <-outputCh:
-				fmt.Println(str)
-			}
+		for str := range outputCh {
+			fmt.Println(str)
 		}
 	}()
 
