@@ -1,2 +1,0 @@
-docs/old.png filter=lfs diff=lfs merge=lfs -text
-docs/follow.png filter=lfs diff=lfs merge=lfs -text
