@@ -30,7 +30,3 @@ Watch for 404 errors from `95.217.226.19`, but skip `Build/OPM1.171019.026` user
 ```bash
 sternom mp3 --follow | grep "nginx" | grep " 404 " | grep -v "Build/OPM1.171019.026"| grep "95.217.226.19"
 ```
-
-## Todo
-
-- automatic connect to the new allocations
