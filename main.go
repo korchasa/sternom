@@ -12,23 +12,23 @@ import (
 	"github.com/fatih/color"
 )
 
-const version = "1.11.0"
+var (
+	Version string
+)
 
 type Options struct {
-	nomadAddr  string
-	timestamps bool
-	follow     bool
-	nbytes     int64
-	color      string
-	version    bool
+	nomadAddr string
+	follow    bool
+	nbytes    int64
+	color     string
+	version   bool
 }
 
 var opts = &Options{
-	nomadAddr:  os.Getenv("NOMAD_ADDR"),
-	timestamps: false,
-	follow:     false,
-	nbytes:     -1,
-	color:      "auto",
+	nomadAddr: os.Getenv("NOMAD_ADDR"),
+	follow:    false,
+	nbytes:    -1,
+	color:     "auto",
 }
 
 func main() {
@@ -39,7 +39,6 @@ func main() {
 	cmd.Short = "Tail multiple jobs and allocations from Nomad"
 
 	cmd.Flags().StringVarP(&opts.nomadAddr, "address", "a", opts.nomadAddr, "The address of the Nomad server. Overrides the NOMAD_ADDR environment variable if set.")
-	cmd.Flags().BoolVarP(&opts.timestamps, "timestamps", "p", opts.timestamps, "Print timestamps")
 	cmd.Flags().BoolVarP(&opts.follow, "follow", "f", opts.follow, "Whether the logs should be followed")
 	cmd.Flags().Int64VarP(&opts.nbytes, "tail", "t", opts.nbytes, "The number of bytes from the end of the logs to show. Defaults to -1, showing all logs.")
 	cmd.Flags().StringVar(&opts.color, "color", opts.color, "Color output. Can be 'always', 'never', or 'auto'")
@@ -47,7 +46,7 @@ func main() {
 
 	cmd.RunE = func(cmd *cobra.Command, args []string) error {
 		if opts.version {
-			fmt.Printf("sternom version %s\n", version)
+			fmt.Printf("sternom version %s\n", Version)
 			return nil
 		}
 
@@ -93,7 +92,6 @@ func parseConfig(args []string) (*pkg.Config, error) {
 	return &pkg.Config{
 		JobsOrAllocPrefix: prefix,
 		NomadAddress:      opts.nomadAddr,
-		Timestamps:        opts.timestamps,
 		Follow:            opts.follow,
 		TailBytes:         opts.nbytes,
 	}, nil
