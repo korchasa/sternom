@@ -1,4 +1,4 @@
-module korchasa/sternom
+module github.com/korchasa/sternom
 
 go 1.16
 
