@@ -23,13 +23,13 @@ func RunApp(_ context.Context, conf *Config) error {
 	if err != nil {
 		log.Fatalf("Can't find Job subscriptions: %s", err)
 	}
-	log.Printf("%d Job subsriptions\n", len(subs))
+	log.Printf("%d subsriptions by job name\n", len(subs))
 	if len(subs) == 0 {
 		subs, err = findAllocSubscription(client, conf.JobsOrAllocPrefix)
 		if err != nil {
 			log.Fatalf("Can't find allocations subscriptions: %s", err)
 		}
-		log.Printf("%d Alloc subsriptions\n", len(subs))
+		log.Printf("%d subsriptions by allocations ids\n", len(subs))
 	}
 
 	cancelCh := make(chan os.Signal)
