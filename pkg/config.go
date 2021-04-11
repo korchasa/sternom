@@ -6,5 +6,7 @@ type Config struct {
 	NomadAddress      string
 	Timestamps        bool
 	Follow            bool
+	ShowStdout        bool
+	ShowStderr        bool
 	TailBytes         int64
 }

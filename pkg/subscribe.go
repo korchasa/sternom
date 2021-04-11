@@ -30,22 +30,27 @@ func subscribe(client *api.Client, conf *Config, subs []*Subscription, out chan<
 
 		al := &api.Allocation{ID: sub.Alloc, NodeID: sub.Node}
 
-		wg.Add(1)
-		go func(sub Subscription) {
-			stdoutCh, _ := client.AllocFS().Logs(al, conf.Follow, sub.Task, "stdout", from, offset, nil, nil)
-			worker(name+"  ", stdoutCh, out, wg)
-		}(*sub)
+		if conf.ShowStdout {
+			wg.Add(1)
+			go func(sub Subscription) {
+				defer wg.Done()
+				stdoutCh, _ := client.AllocFS().Logs(al, conf.Follow, sub.Task, "stdout", from, offset, nil, nil)
+				worker(name+"  ", stdoutCh, out)
+			}(*sub)
+		}
 
-		wg.Add(1)
-		go func(sub Subscription) {
-			stderrCh, _ := client.AllocFS().Logs(al, conf.Follow, sub.Task, "stderr", from, offset, nil, nil)
-			worker(name+"! ", stderrCh, out, wg)
-		}(*sub)
+		if conf.ShowStderr {
+			wg.Add(1)
+			go func(sub Subscription) {
+				defer wg.Done()
+				stderrCh, _ := client.AllocFS().Logs(al, conf.Follow, sub.Task, "stderr", from, offset, nil, nil)
+				worker(name+"! ", stderrCh, out)
+			}(*sub)
+		}
 	}
 }
 
-func worker(prefix string, in <-chan *api.StreamFrame, out chan<- string, wg *sync.WaitGroup) {
-	defer wg.Done()
+func worker(prefix string, in <-chan *api.StreamFrame, out chan<- string) {
 	for data := range in {
 		if data == nil {
 			continue
