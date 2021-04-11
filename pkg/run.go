@@ -2,7 +2,6 @@ package pkg
 
 import (
 	"context"
-	"fmt"
 	"github.com/hashicorp/nomad/api"
 	"log"
 	"os"
@@ -11,25 +10,10 @@ import (
 	"syscall"
 )
 
-func RunApp(_ context.Context, conf *Config) error {
+func Run(_ context.Context, conf *Config) error {
 	client, err := api.NewClient(&api.Config{Address: conf.NomadAddress})
-
 	if err != nil {
 		log.Fatalf("Can't init client: %s", err)
-	}
-
-	var subs []*Subscription
-	subs, err = findJobSubscription(client, conf.JobsOrAllocPrefix)
-	if err != nil {
-		log.Fatalf("Can't find Job subscriptions: %s", err)
-	}
-	log.Printf("%d subsriptions by job name\n", len(subs))
-	if len(subs) == 0 {
-		subs, err = findAllocSubscription(client, conf.JobsOrAllocPrefix)
-		if err != nil {
-			log.Fatalf("Can't find allocations subscriptions: %s", err)
-		}
-		log.Printf("%d subsriptions by allocations ids\n", len(subs))
 	}
 
 	cancelCh := make(chan os.Signal)
@@ -41,14 +25,13 @@ func RunApp(_ context.Context, conf *Config) error {
 	}()
 
 	outputCh := make(chan string, 10)
-	go func() {
-		for str := range outputCh {
-			fmt.Println(str)
-		}
-	}()
+	go PrintLogRecord(outputCh)
+
+	subsCh := make(chan Subscription)
+	go SubscriptionFinder(client, subsCh, conf.JobsOrAllocPrefix)
 
 	wg := &sync.WaitGroup{}
-	subscribe(client, conf, subs, outputCh, wg)
+	Subscriber(client, conf, subsCh, outputCh, wg)
 	wg.Wait()
 
 	return nil
