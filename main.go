@@ -17,18 +17,22 @@ var (
 )
 
 type Options struct {
-	nomadAddr string
-	follow    bool
-	nbytes    int64
-	color     string
-	version   bool
+	nomadAddr  string
+	follow     bool
+	onlyStdout bool
+	onlyStderr bool
+	nbytes     int64
+	color      string
+	version    bool
 }
 
 var opts = &Options{
-	nomadAddr: os.Getenv("NOMAD_ADDR"),
-	follow:    false,
-	nbytes:    -1,
-	color:     "auto",
+	nomadAddr:  "NOMAD_ADDR",
+	follow:     false,
+	onlyStdout: false,
+	onlyStderr: false,
+	nbytes:     -1,
+	color:      "auto",
 }
 
 func main() {
@@ -40,6 +44,8 @@ func main() {
 
 	cmd.Flags().StringVarP(&opts.nomadAddr, "address", "a", opts.nomadAddr, "The address of the Nomad server. Overrides the NOMAD_ADDR environment variable if set.")
 	cmd.Flags().BoolVarP(&opts.follow, "follow", "f", opts.follow, "Whether the logs should be followed")
+	cmd.Flags().BoolVar(&opts.onlyStdout, "stdout", opts.onlyStdout, "Show only stdout log")
+	cmd.Flags().BoolVar(&opts.onlyStderr, "stderr", opts.onlyStderr, "Show only stderr log")
 	cmd.Flags().Int64VarP(&opts.nbytes, "tail", "t", opts.nbytes, "The number of bytes from the end of the logs to show. Defaults to -1, showing all logs.")
 	cmd.Flags().StringVar(&opts.color, "color", opts.color, "Color output. Can be 'always', 'never', or 'auto'")
 	cmd.Flags().BoolVarP(&opts.version, "version", "v", opts.version, "Print the version and exit")
@@ -80,19 +86,32 @@ func main() {
 func parseConfig(args []string) (*pkg.Config, error) {
 	prefix := args[0]
 
-	colorFlag := opts.color
-	if colorFlag == "always" {
+	opts.nomadAddr = os.Getenv("NOMAD_ADDR")
+
+	cf := opts.color
+	if cf == "always" {
 		color.NoColor = false
-	} else if colorFlag == "never" {
+	} else if cf == "never" {
 		color.NoColor = true
-	} else if colorFlag != "auto" {
+	} else if cf != "auto" {
 		return nil, errors.New("color should be one of 'always', 'never', or 'auto'")
+	}
+
+	showStdout, showStderr := true, true
+	if opts.onlyStdout && opts.onlyStderr {
+		return nil, errors.New("can't combine stdout and stderr flags")
+	} else if opts.onlyStdout {
+		showStderr = false
+	} else if opts.onlyStderr {
+		showStdout = false
 	}
 
 	return &pkg.Config{
 		JobsOrAllocPrefix: prefix,
 		NomadAddress:      opts.nomadAddr,
 		Follow:            opts.follow,
+		ShowStdout:        showStdout,
+		ShowStderr:        showStderr,
 		TailBytes:         opts.nbytes,
 	}, nil
 }
