@@ -3,9 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/korchasa/sternom/pkg"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"korchasa/sternom/pkg"
 	"log"
 	"os"
 
