@@ -69,7 +69,7 @@ func main() {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		err = pkg.RunApp(ctx, config)
+		err = pkg.Run(ctx, config)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
