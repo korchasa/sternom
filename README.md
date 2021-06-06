@@ -20,6 +20,7 @@ Flags:
       --color string     Color output. Can be 'always', 'never', or 'auto' (default "auto")
   -f, --follow           Whether the logs should be followed
   -h, --help             help for sternom
+  -n, --new              Shorthand for --follow and --tail 0
       --stderr           Show only stderr log
       --stdout           Show only stdout log
   -t, --tail int         The number of bytes from the end of the logs to show. Defaults to -1, showing all logs. (default -1)
