@@ -4,36 +4,23 @@ import (
 	"context"
 	"fmt"
 	"github.com/korchasa/sternom/pkg"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"log"
 	"os"
-
-	"github.com/fatih/color"
 )
 
 var (
 	Version string
+	opts    = &pkg.Options{
+		NomadAddr:  "NOMAD_ADDR",
+		Follow:     false,
+		TailBytes:  -1,
+		New:        false,
+		OnlyStdout: false,
+		OnlyStderr: false,
+		Color:      "auto",
+	}
 )
-
-type Options struct {
-	nomadAddr  string
-	follow     bool
-	onlyStdout bool
-	onlyStderr bool
-	nbytes     int64
-	color      string
-	version    bool
-}
-
-var opts = &Options{
-	nomadAddr:  "NOMAD_ADDR",
-	follow:     false,
-	onlyStdout: false,
-	onlyStderr: false,
-	nbytes:     -1,
-	color:      "auto",
-}
 
 func main() {
 	log.SetFlags(0)
@@ -42,25 +29,23 @@ func main() {
 	cmd.Use = "sternom job-or-alloc-prefix"
 	cmd.Short = "Tail multiple jobs and allocations from Nomad"
 
-	cmd.Flags().StringVarP(&opts.nomadAddr, "address", "a", opts.nomadAddr, "The address of the Nomad server. Overrides the NOMAD_ADDR environment variable if set.")
-	cmd.Flags().BoolVarP(&opts.follow, "follow", "f", opts.follow, "Whether the logs should be followed")
-	cmd.Flags().BoolVar(&opts.onlyStdout, "stdout", opts.onlyStdout, "Show only stdout log")
-	cmd.Flags().BoolVar(&opts.onlyStderr, "stderr", opts.onlyStderr, "Show only stderr log")
-	cmd.Flags().Int64VarP(&opts.nbytes, "tail", "t", opts.nbytes, "The number of bytes from the end of the logs to show. Defaults to -1, showing all logs.")
-	cmd.Flags().StringVar(&opts.color, "color", opts.color, "Color output. Can be 'always', 'never', or 'auto'")
-	cmd.Flags().BoolVarP(&opts.version, "version", "v", opts.version, "Print the version and exit")
+	cmd.Args = cobra.ExactArgs(1)
+	cmd.Flags().StringVarP(&opts.NomadAddr, "address", "a", opts.NomadAddr, "The address of the Nomad server. Overrides the NOMAD_ADDR environment variable if set.")
+	cmd.Flags().BoolVarP(&opts.Follow, "follow", "f", opts.Follow, "Whether the logs should be followed")
+	cmd.Flags().Int64VarP(&opts.TailBytes, "tail", "t", opts.TailBytes, "The number of bytes from the end of the logs to show. Defaults to -1, showing all logs.")
+	cmd.Flags().BoolVarP(&opts.New, "new", "n", opts.New, "Shorthand for --follow and --tail 0")
+	cmd.Flags().BoolVar(&opts.OnlyStdout, "stdout", opts.OnlyStdout, "Show only stdout log")
+	cmd.Flags().BoolVar(&opts.OnlyStderr, "stderr", opts.OnlyStderr, "Show only stderr log")
+	cmd.Flags().StringVar(&opts.Color, "color", opts.Color, "Color output. Can be 'always', 'never', or 'auto'")
+	cmd.Flags().BoolVarP(&opts.Version, "version", "v", opts.Version, "Print the version and exit")
 
 	cmd.RunE = func(cmd *cobra.Command, args []string) error {
-		if opts.version {
+		if opts.Version {
 			fmt.Printf("sternom version %s\n", Version)
 			return nil
 		}
 
-		narg := len(args)
-		if narg != 1 {
-			return cmd.Help()
-		}
-		config, err := parseConfig(args)
+		config, err := pkg.ParseCLIArguments(args[0], opts)
 		if err != nil {
 			log.Println(err)
 			os.Exit(2)
@@ -81,37 +66,4 @@ func main() {
 	if err := cmd.Execute(); err != nil {
 		log.Fatal(err)
 	}
-}
-
-func parseConfig(args []string) (*pkg.Config, error) {
-	prefix := args[0]
-
-	opts.nomadAddr = os.Getenv("NOMAD_ADDR")
-
-	cf := opts.color
-	if cf == "always" {
-		color.NoColor = false
-	} else if cf == "never" {
-		color.NoColor = true
-	} else if cf != "auto" {
-		return nil, errors.New("color should be one of 'always', 'never', or 'auto'")
-	}
-
-	showStdout, showStderr := true, true
-	if opts.onlyStdout && opts.onlyStderr {
-		return nil, errors.New("can't combine stdout and stderr flags")
-	} else if opts.onlyStdout {
-		showStderr = false
-	} else if opts.onlyStderr {
-		showStdout = false
-	}
-
-	return &pkg.Config{
-		JobsOrAllocPrefix: prefix,
-		NomadAddress:      opts.nomadAddr,
-		Follow:            opts.follow,
-		ShowStdout:        showStdout,
-		ShowStderr:        showStderr,
-		TailBytes:         opts.nbytes,
-	}, nil
 }
