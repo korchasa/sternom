@@ -2,7 +2,9 @@ package pkg
 
 import (
 	"fmt"
+	"github.com/fatih/color"
 	"github.com/hashicorp/nomad/api"
+	"hash/fnv"
 	"log"
 	"sync"
 )
@@ -32,7 +34,7 @@ func Subscriber(client *api.Client, conf *Config, subs <-chan Subscription, out 
 			go func(sub Subscription) {
 				defer wg.Done()
 				stdoutCh, _ := client.AllocFS().Logs(al, conf.Follow, sub.Task, "stdout", from, offset, nil, nil)
-				LogReader(name+"  ", stdoutCh, out)
+				LogReader(fmt.Sprintf("%s  ", name), stdoutCh, out)
 			}(sub)
 		}
 
@@ -41,8 +43,42 @@ func Subscriber(client *api.Client, conf *Config, subs <-chan Subscription, out 
 			go func(sub Subscription) {
 				defer wg.Done()
 				stderrCh, _ := client.AllocFS().Logs(al, conf.Follow, sub.Task, "stderr", from, offset, nil, nil)
-				LogReader(name+"! ", stderrCh, out)
+				LogReader(fmt.Sprintf("%s%s ", name, color.New(color.BgRed).Sprint("!")), stderrCh, out)
 			}(sub)
 		}
 	}
+}
+
+var jobColors = []*color.Color{
+	color.New(color.FgHiCyan),
+	color.New(color.FgGreen),
+	color.New(color.FgMagenta),
+	color.New(color.FgYellow),
+	color.New(color.FgBlue),
+	color.New(color.FgRed),
+}
+
+var otherColors = []*color.Color{
+	color.New(color.FgHiCyan),
+	color.New(color.FgGreen),
+	color.New(color.FgMagenta),
+	color.New(color.FgYellow),
+	color.New(color.FgBlue),
+	color.New(color.FgRed),
+}
+
+func determineColors(job, alloc, task string) (jobColor, allocColor, taskColor *color.Color) {
+	hash := fnv.New32()
+	_, _ = hash.Write([]byte(job))
+	jobColor = jobColors[hash.Sum32()%uint32(len(jobColors))]
+
+	hash = fnv.New32()
+	_, _ = hash.Write([]byte(alloc))
+	allocColor = otherColors[hash.Sum32()%uint32(len(otherColors))]
+
+	hash = fnv.New32()
+	_, _ = hash.Write([]byte(task))
+	taskColor = otherColors[hash.Sum32()%uint32(len(otherColors))]
+
+	return
 }
