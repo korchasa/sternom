@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/hashicorp/nomad/api"
 	"log"
+	"strings"
 	"time"
 )
 
@@ -13,6 +14,9 @@ func SubscriptionFinder(client *api.Client, subsCh chan<- Subscription, prefix s
 		newSubs, err := findSubscriptions(client, prefix)
 		if err != nil {
 			log.Fatalf("Can't find subscriptions: %s", err)
+		}
+		if len(newSubs) == 0 {
+			log.Printf("No jobs or allocations found by prefix `%s`", prefix)
 		}
 		for _, ns := range newSubs {
 			found := false
@@ -70,11 +74,17 @@ func findJobSubscription(client *api.Client, prefix string) ([]*Subscription, er
 
 func findAllocSubscription(client *api.Client, prefix string) ([]*Subscription, error) {
 	var subs []*Subscription
-	list, _, err := client.Allocations().PrefixList(prefix)
+	list, _, err := client.Allocations().List(nil)
 	if err != nil {
 		return nil, fmt.Errorf("can't make a search for a allocation by prefix `%s`: %v", prefix, err)
 	}
 	for _, al := range list {
+		if !strings.HasPrefix(al.ID, prefix) {
+			continue
+		}
+		if al.ClientStatus != api.AllocClientStatusRunning {
+			continue
+		}
 		for t := range al.TaskStates {
 			subs = append(subs, NewSubscription(al.NodeID, al.JobID, al.ID, t))
 		}
