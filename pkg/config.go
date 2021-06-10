@@ -9,5 +9,7 @@ type Config struct {
 	ShowStdout        bool
 	ShowStderr        bool
 	TaskName          string
+	FilterStr         *[]string
+	ExcludeStr        *[]string
 	TailBytes         int64
 }

@@ -19,6 +19,8 @@ var (
 		OnlyStdout: false,
 		OnlyStderr: false,
 		TaskName:   "",
+		FilterStr:  nil,
+		ExcludeStr: nil,
 		Color:      "auto",
 	}
 )
@@ -38,6 +40,8 @@ func main() {
 	cmd.Flags().BoolVar(&opts.OnlyStdout, "stdout", opts.OnlyStdout, "Show only stdout log")
 	cmd.Flags().BoolVar(&opts.OnlyStderr, "stderr", opts.OnlyStderr, "Show only stderr log")
 	cmd.Flags().StringVar(&opts.TaskName, "task", opts.TaskName, "Show logs only for one task")
+	opts.FilterStr = cmd.Flags().StringSliceP("filter", "i", nil, "Filter log records by pattern. Multiple filters: `-i a -i b` or `-i a,b`")
+	opts.ExcludeStr = cmd.Flags().StringSliceP("exclude", "e", nil, "Exclude log records by pattern. Multiple filters: `-e a -e b` or `-e a,b`")
 	cmd.Flags().StringVar(&opts.Color, "color", opts.Color, "Color output. Can be 'always', 'never', or 'auto'")
 	cmd.Flags().BoolVarP(&opts.Version, "version", "v", opts.Version, "Print the version and exit")
 
