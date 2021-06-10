@@ -28,7 +28,7 @@ func Run(_ context.Context, conf *Config) error {
 	go PrintLogRecord(outputCh)
 
 	subsCh := make(chan Subscription)
-	go SubscriptionFinder(client, subsCh, conf.JobsOrAllocPrefix)
+	go SubscriptionFinder(client, subsCh, conf.JobsOrAllocPrefix, conf.TaskName)
 
 	wg := &sync.WaitGroup{}
 	Subscriber(client, conf, subsCh, outputCh, wg)

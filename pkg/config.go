@@ -8,5 +8,6 @@ type Config struct {
 	Follow            bool
 	ShowStdout        bool
 	ShowStderr        bool
+	TaskName          string
 	TailBytes         int64
 }

@@ -8,10 +8,10 @@ import (
 	"time"
 )
 
-func SubscriptionFinder(client *api.Client, subsCh chan<- Subscription, prefix string) {
+func SubscriptionFinder(client *api.Client, subsCh chan<- Subscription, prefix string, task string) {
 	var currentSubs []*Subscription
 	for {
-		newSubs, err := findSubscriptions(client, prefix)
+		newSubs, err := findSubscriptions(client, prefix, task)
 		if err != nil {
 			log.Fatalf("Can't find subscriptions: %s", err)
 		}
@@ -34,14 +34,14 @@ func SubscriptionFinder(client *api.Client, subsCh chan<- Subscription, prefix s
 	}
 }
 
-func findSubscriptions(client *api.Client, prefix string) ([]*Subscription, error) {
+func findSubscriptions(client *api.Client, prefix string, task string) ([]*Subscription, error) {
 	var subs []*Subscription
-	subs, err := findJobSubscription(client, prefix)
+	subs, err := findJobSubscription(client, prefix, task)
 	if err != nil {
 		return nil, fmt.Errorf("error on job subsriptions search: %v", err)
 	}
 	if len(subs) == 0 {
-		subs, err = findAllocSubscription(client, prefix)
+		subs, err = findAllocSubscription(client, prefix, task)
 		if err != nil {
 			return nil, fmt.Errorf("error on alloc subsriptions search: %v", err)
 		}
@@ -49,7 +49,7 @@ func findSubscriptions(client *api.Client, prefix string) ([]*Subscription, erro
 	return subs, nil
 }
 
-func findJobSubscription(client *api.Client, prefix string) ([]*Subscription, error) {
+func findJobSubscription(client *api.Client, prefix string, task string) ([]*Subscription, error) {
 	jobs, _, err := client.Jobs().PrefixList(prefix)
 	if err != nil {
 		return nil, fmt.Errorf("can't make a search for a Job: %v", err)
@@ -65,6 +65,9 @@ func findJobSubscription(client *api.Client, prefix string) ([]*Subscription, er
 				continue
 			}
 			for t := range al.TaskStates {
+				if task != "" && task != t {
+					continue
+				}
 				subs = append(subs, NewSubscription(al.NodeID, j.Name, al.ID, t))
 			}
 		}
@@ -72,7 +75,7 @@ func findJobSubscription(client *api.Client, prefix string) ([]*Subscription, er
 	return subs, nil
 }
 
-func findAllocSubscription(client *api.Client, prefix string) ([]*Subscription, error) {
+func findAllocSubscription(client *api.Client, prefix string, task string) ([]*Subscription, error) {
 	var subs []*Subscription
 	list, _, err := client.Allocations().List(nil)
 	if err != nil {
@@ -86,6 +89,9 @@ func findAllocSubscription(client *api.Client, prefix string) ([]*Subscription, 
 			continue
 		}
 		for t := range al.TaskStates {
+			if task != "" && task != t {
+				continue
+			}
 			subs = append(subs, NewSubscription(al.NodeID, al.JobID, al.ID, t))
 		}
 	}

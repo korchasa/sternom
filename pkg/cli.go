@@ -13,6 +13,7 @@ type Options struct {
 	New        bool
 	OnlyStdout bool
 	OnlyStderr bool
+	TaskName   string
 	Color      string
 	Version    bool
 }
@@ -49,6 +50,7 @@ func ParseCLIArguments(prefix string, opts *Options) (*Config, error) {
 		Follow:            opts.Follow,
 		ShowStdout:        showStdout,
 		ShowStderr:        showStderr,
+		TaskName:          opts.TaskName,
 		TailBytes:         opts.TailBytes,
 	}, nil
 }

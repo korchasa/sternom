@@ -18,6 +18,7 @@ var (
 		New:        false,
 		OnlyStdout: false,
 		OnlyStderr: false,
+		TaskName:   "",
 		Color:      "auto",
 	}
 )
@@ -36,6 +37,7 @@ func main() {
 	cmd.Flags().BoolVarP(&opts.New, "new", "n", opts.New, "Shorthand for --follow and --tail 0")
 	cmd.Flags().BoolVar(&opts.OnlyStdout, "stdout", opts.OnlyStdout, "Show only stdout log")
 	cmd.Flags().BoolVar(&opts.OnlyStderr, "stderr", opts.OnlyStderr, "Show only stderr log")
+	cmd.Flags().StringVar(&opts.TaskName, "task", opts.TaskName, "Show logs only for one task")
 	cmd.Flags().StringVar(&opts.Color, "color", opts.Color, "Color output. Can be 'always', 'never', or 'auto'")
 	cmd.Flags().BoolVarP(&opts.Version, "version", "v", opts.Version, "Print the version and exit")
 
