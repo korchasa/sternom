@@ -25,7 +25,7 @@ func Run(_ context.Context, conf *Config) error {
 	}()
 
 	outputCh := make(chan string, 10)
-	go PrintLogRecord(outputCh)
+	go LogRecordsPrinter(outputCh)
 
 	subsCh := make(chan Subscription)
 	go SubscriptionFinder(client, subsCh, conf.JobsOrAllocPrefix, conf.TaskName)
