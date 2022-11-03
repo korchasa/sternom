@@ -12,4 +12,5 @@ type Config struct {
 	FilterStr         *[]string
 	ExcludeStr        *[]string
 	TailBytes         int64
+	Raw               bool
 }

@@ -1,9 +1,10 @@
 package pkg
 
 import (
+	"os"
+
 	"github.com/fatih/color"
 	"github.com/pkg/errors"
-	"os"
 )
 
 type Options struct {
@@ -18,6 +19,7 @@ type Options struct {
 	ExcludeStr *[]string
 	Color      string
 	Version    bool
+	Raw        bool
 }
 
 func ParseCLIArguments(prefix string, opts *Options) (*Config, error) {
@@ -56,5 +58,6 @@ func ParseCLIArguments(prefix string, opts *Options) (*Config, error) {
 		FilterStr:         opts.FilterStr,
 		ExcludeStr:        opts.ExcludeStr,
 		TailBytes:         opts.TailBytes,
+		Raw:               opts.Raw,
 	}, nil
 }

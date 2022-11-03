@@ -2,10 +2,11 @@ package pkg
 
 import (
 	"fmt"
-	"github.com/hashicorp/nomad/api"
-	"log"
+	"os"
 	"strings"
 	"time"
+
+	"github.com/hashicorp/nomad/api"
 )
 
 func SubscriptionFinder(client *api.Client, subsCh chan<- Subscription, prefix string, task string) {
@@ -13,10 +14,10 @@ func SubscriptionFinder(client *api.Client, subsCh chan<- Subscription, prefix s
 	for {
 		newSubs, err := findSubscriptions(client, prefix, task)
 		if err != nil {
-			log.Fatalf("Can't find subscriptions: %s", err)
+			fmt.Fprintf(os.Stderr, "Can't find subscriptions: %s\n", err)
 		}
 		if len(newSubs) == 0 {
-			log.Printf("No jobs or allocations found by prefix `%s`", prefix)
+			fmt.Fprintf(os.Stderr, "No jobs or allocations found by prefix `%s`\n", prefix)
 		}
 		for _, ns := range newSubs {
 			found := false
