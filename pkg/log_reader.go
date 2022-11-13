@@ -2,7 +2,9 @@ package pkg
 
 import (
 	"bufio"
+	"fmt"
 	"io"
+	"os"
 	"sync"
 
 	"github.com/hashicorp/nomad/api"
@@ -23,7 +25,10 @@ func LogReader(prefix string, in <-chan *api.StreamFrame, out chan<- string) {
 				continue
 			}
 
-			pw.Write(data.Data)
+			if _, err := pw.Write(data.Data); err != nil {
+				fmt.Fprintf(os.Stderr, "error writing data to pipe, err=%v\n", err)
+				return
+			}
 		}
 	}()
 
