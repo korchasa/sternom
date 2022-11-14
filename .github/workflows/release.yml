@@ -14,7 +14,7 @@ jobs:
           - goarch: arm64
             goos: windows
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Set APP_VERSION env
         run: echo APP_VERSION=$(basename ${GITHUB_REF}) >> ${GITHUB_ENV}
