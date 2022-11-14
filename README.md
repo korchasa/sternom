@@ -7,6 +7,10 @@ go get github.com/korchasa/sternom
 sternom --help
 ```
 
+### Docker
+
+Images: https://github.com/korchasa/sternom/pkgs/container/sternom
+
 ## Usage
 
 ```
