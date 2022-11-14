@@ -2,11 +2,12 @@ package pkg
 
 import (
 	"fmt"
+	"hash/fnv"
+	"os"
+	"sync"
+
 	"github.com/fatih/color"
 	"github.com/hashicorp/nomad/api"
-	"hash/fnv"
-	"log"
-	"sync"
 )
 
 func Subscriber(client *api.Client, conf *Config, subs <-chan Subscription, out chan<- string, wg *sync.WaitGroup) {
@@ -16,7 +17,7 @@ func Subscriber(client *api.Client, conf *Config, subs <-chan Subscription, out 
 			jobColor.Sprintf("%s", sub.Job),
 			allocColor.Sprintf("%s", sub.AllocShort),
 			taskColor.Sprintf("%s", sub.Task))
-		log.Printf("+ %s\n", name)
+		fmt.Fprintf(os.Stderr, "+ %s\n", name)
 
 		from := "end"
 		offset := conf.TailBytes
@@ -30,20 +31,30 @@ func Subscriber(client *api.Client, conf *Config, subs <-chan Subscription, out 
 		al := &api.Allocation{ID: sub.Alloc, NodeID: sub.Node}
 
 		if conf.ShowStdout {
+			prefix := ""
+			if !conf.Raw {
+				prefix = fmt.Sprintf("%s  ", name)
+			}
+
 			wg.Add(1)
 			go func(sub Subscription) {
 				defer wg.Done()
 				stdoutCh, _ := client.AllocFS().Logs(al, conf.Follow, sub.Task, "stdout", from, offset, nil, nil)
-				LogReader(fmt.Sprintf("%s  ", name), stdoutCh, out)
+				LogReader(prefix, stdoutCh, out)
 			}(sub)
 		}
 
 		if conf.ShowStderr {
+			prefix := ""
+			if !conf.Raw {
+				prefix = fmt.Sprintf("%s%s ", name, color.New(color.BgRed).Sprint("!"))
+			}
+
 			wg.Add(1)
 			go func(sub Subscription) {
 				defer wg.Done()
 				stderrCh, _ := client.AllocFS().Logs(al, conf.Follow, sub.Task, "stderr", from, offset, nil, nil)
-				LogReader(fmt.Sprintf("%s%s ", name, color.New(color.BgRed).Sprint("!")), stderrCh, out)
+				LogReader(prefix, stderrCh, out)
 			}(sub)
 		}
 	}

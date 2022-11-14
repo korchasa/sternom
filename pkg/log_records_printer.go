@@ -2,8 +2,9 @@ package pkg
 
 import (
 	"fmt"
-	"github.com/fatih/color"
 	"strings"
+
+	"github.com/fatih/color"
 )
 
 func LogRecordsPrinter(outputCh <-chan string, filterStr []string, excludeStr []string) {

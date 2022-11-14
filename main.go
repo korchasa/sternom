@@ -3,10 +3,11 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/korchasa/sternom/pkg"
-	"github.com/spf13/cobra"
 	"log"
 	"os"
+
+	"github.com/korchasa/sternom/pkg"
+	"github.com/spf13/cobra"
 )
 
 var (
@@ -22,6 +23,7 @@ var (
 		FilterStr:  nil,
 		ExcludeStr: nil,
 		Color:      "auto",
+		Raw:        false,
 	}
 )
 
@@ -44,6 +46,7 @@ func main() {
 	opts.ExcludeStr = cmd.Flags().StringSliceP("exclude", "e", nil, "Exclude log records by pattern. Multiple filters: `-e a -e b` or `-e a,b`")
 	cmd.Flags().StringVar(&opts.Color, "color", opts.Color, "Color output. Can be 'always', 'never', or 'auto'")
 	cmd.Flags().BoolVarP(&opts.Version, "version", "v", opts.Version, "Print the version and exit")
+	cmd.Flags().BoolVar(&opts.Raw, "raw", opts.Raw, "Print the raw output")
 
 	cmd.RunE = func(cmd *cobra.Command, args []string) error {
 		if opts.Version {
@@ -53,7 +56,7 @@ func main() {
 
 		config, err := pkg.ParseCLIArguments(args[0], opts)
 		if err != nil {
-			log.Println(err)
+			fmt.Fprintln(os.Stderr, err)
 			os.Exit(2)
 		}
 
@@ -62,7 +65,7 @@ func main() {
 
 		err = pkg.Run(ctx, config)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
 
