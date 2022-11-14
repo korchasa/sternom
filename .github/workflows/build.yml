@@ -22,7 +22,7 @@ jobs:
         id: meta
         uses: crazy-max/ghaction-docker-meta@v2
         with:
-          images: ghcr.io/korchasa/cf-transfer
+          images: ghcr.io/korchasa/sternom
           tags: |
             type=ref,event=branch
             type=ref,event=pr
