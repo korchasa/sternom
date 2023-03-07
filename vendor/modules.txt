@@ -37,7 +37,6 @@ github.com/spf13/cobra
 github.com/spf13/pflag
 # github.com/stretchr/testify v1.6.1
 ## explicit
-# golang.org/x/sys v0.0.0-20210225134936-a50acf3fe073
+# golang.org/x/sys v0.1.0
 ## explicit
-golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
